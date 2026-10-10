@@ -1,0 +1,33 @@
+const svg = (body) => `<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`
+const txt = (t, size = 7) => `<text x="8" y="11.2" text-anchor="middle" font-size="${size}" font-weight="700" fill="currentColor" stroke="none" font-family="system-ui, sans-serif">${t}</text>`
+
+export const ICONS = {
+  text: svg('<path d="M3 3.5h10M8 3.5v9.5"/>'),
+  h1: svg(txt('H1')),
+  h2: svg(txt('H2')),
+  h3: svg(txt('H3')),
+  bullet: svg('<circle cx="3" cy="4" r=".6" fill="currentColor"/><circle cx="3" cy="8" r=".6" fill="currentColor"/><circle cx="3" cy="12" r=".6" fill="currentColor"/><path d="M6 4h8M6 8h8M6 12h8"/>'),
+  number: svg('<path d="M2.5 2.8l1-.6v3.6M2.2 9.2c.2-.6 1.6-.9 1.8 0 .2.7-1.8 1.6-1.8 2.5h1.9M6.5 4h7.5M6.5 8h7.5M6.5 12h7.5"/>'),
+  check: svg('<rect x="1.8" y="2.3" width="4" height="4" rx="1"/><path d="M2.7 4.3l.9.9 1.4-1.6"/><rect x="1.8" y="9.7" width="4" height="4" rx="1"/><path d="M8 4.3h6M8 11.7h6"/>'),
+  quote: svg('<path d="M3 3.5v9M6 5h8M6 8h8M6 11h5"/>'),
+  codeblock: svg('<rect x="1.8" y="2.5" width="12.4" height="11" rx="1.5"/><path d="M6 6.3L4.3 8 6 9.7M10 6.3L11.7 8 10 9.7"/>'),
+  code: svg('<path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/>'),
+  table: svg('<rect x="1.8" y="2.5" width="12.4" height="11" rx="1.5"/><path d="M1.8 6.2h12.4M1.8 9.8h12.4M6 6.2v7.3M10 6.2v7.3"/>'),
+  divider: svg('<path d="M2 8h12M4 4.5h8M4 11.5h8" stroke-opacity=".45"/><path d="M2 8h12"/>'),
+  image: svg('<rect x="1.8" y="2.5" width="12.4" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1.1"/><path d="M2.2 12.2l3.7-3.6 2.6 2.4 2-1.8 3.3 3"/>'),
+  link: svg('<path d="M6.7 9.3a2.6 2.6 0 0 0 3.7 0l2.3-2.3a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.3 6.7a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/>'),
+  highlight: svg('<path d="M9.8 2.5l3.7 3.7-5.6 5.6H4.2v-3.7z"/><path d="M2 14h12" stroke-width="2.2"/>'),
+  align: svg('<path d="M2 3.5h12M2 6.5h8M2 9.5h12M2 12.5h8"/>'),
+  alignLeft: svg('<path d="M2 3.5h12M2 6.5h8M2 9.5h12M2 12.5h8"/>'),
+  alignCenter: svg('<path d="M2 3.5h12M4 6.5h8M2 9.5h12M4 12.5h8"/>'),
+  alignRight: svg('<path d="M2 3.5h12M6 6.5h8M2 9.5h12M6 12.5h8"/>'),
+  alignJustify: svg('<path d="M2 3.5h12M2 6.5h12M2 9.5h12M2 12.5h12"/>'),
+  indent: svg('<path d="M2 3.5h12M7 6.5h7M7 9.5h7M2 12.5h12M2 6.5l2.5 1.5L2 9.5"/>'),
+  outdent: svg('<path d="M2 3.5h12M7 6.5h7M7 9.5h7M2 12.5h12M4.5 6.5L2 8l2.5 1.5"/>'),
+  collapsible: svg('<path d="M2.5 4.5l2 2 2-2"/><path d="M9 5.5h5M2.5 9.5h11.5M2.5 12.5h8"/>'),
+  grip: '<svg viewBox="0 0 10 16" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3.5" r="1.25"/><circle cx="7" cy="3.5" r="1.25"/><circle cx="3" cy="8" r="1.25"/><circle cx="7" cy="8" r="1.25"/><circle cx="3" cy="12.5" r="1.25"/><circle cx="7" cy="12.5" r="1.25"/></svg>',
+  plus: svg('<path d="M8 3v10M3 8h10"/>'),
+  undo: svg('<path d="M5.5 3.5L2.5 6.5l3 3"/><path d="M2.5 6.5h7a3.5 3.5 0 0 1 0 7H7"/>'),
+  redo: svg('<path d="M10.5 3.5l3 3-3 3"/><path d="M13.5 6.5h-7a3.5 3.5 0 0 0 0 7H9"/>'),
+  caret: '<svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>',
+}

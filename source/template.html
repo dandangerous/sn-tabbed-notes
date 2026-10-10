@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabbed Notes</title>
+<style>
+:root {
+  --bg: var(--sn-stylekit-editor-background-color, var(--sn-stylekit-background-color, #ffffff));
+  --fg: var(--sn-stylekit-editor-foreground-color, var(--sn-stylekit-foreground-color, #1f2328));
+  --muted: var(--sn-stylekit-neutral-color, #8a8f98);
+  --line: var(--sn-stylekit-border-color, #dfe1e5);
+  --shelf: var(--sn-stylekit-secondary-background-color, #f3f4f6);
+  --contrast: var(--sn-stylekit-contrast-background-color, #e9ebee);
+  --accent: var(--sn-stylekit-info-color, #086dd6);
+  --font: var(--sn-stylekit-sans-serif-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif);
+  --mono: var(--sn-stylekit-monospace-font, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --size: var(--sn-stylekit-font-size-editor, 0.9375rem);
+  --passive: var(--sn-stylekit-passive-color-1, #7b7f86);
+  --contrast-border: var(--sn-stylekit-contrast-border-color, #dfe1e5);
+  --contrast-fg: var(--sn-stylekit-contrast-foreground-color, #4a4f57);
+  --editor-font: var(--sn-stylekit-editor-font-family, var(--sn-stylekit-sans-serif-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif));
+  --active: #3d6fb4;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+button { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- tab shelf ---------- */
+.shelf {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 10px 0;
+  background: var(--shelf);
+  border-bottom: 3px solid var(--active);
+  flex-shrink: 0;
+}
+#tabs { display: flex; align-items: flex-end; gap: 3px; overflow-x: auto; scrollbar-width: thin; min-width: 0; }
+.tab {
+  --tab: #3d6fb4;
+  flex-shrink: 0;
+  max-width: 14em;
+  padding: 6px 14px 5px;
+  border: 0;
+  border-radius: 7px 7px 0 0;
+  background: color-mix(in srgb, var(--tab) 16%, var(--shelf));
+  font-size: 0.82em;
+  line-height: 1.3;
+  cursor: pointer;
+  box-shadow: inset 0 3px 0 var(--tab);
+  white-space: nowrap;
+}
+.tab:hover { background: color-mix(in srgb, var(--tab) 26%, var(--shelf)); }
+.tab[aria-selected="true"] { background: var(--tab); color: #fff; font-weight: 600; padding-bottom: 7px; box-shadow: none; }
+.tab-label { display: block; overflow: hidden; text-overflow: ellipsis; }
+.tab.dragging { opacity: 0.45; }
+.tab-rename {
+  font: inherit; font-weight: 600; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 4px; padding: 1px 4px; min-width: 4ch;
+}
+.add {
+  flex-shrink: 0; margin: 0 0 3px 4px; width: 28px; height: 26px;
+  border: 1px dashed var(--muted); border-radius: 6px; background: transparent;
+  color: var(--muted); font-size: 1.1em; line-height: 1; cursor: pointer;
+}
+.add:hover { color: var(--fg); border-color: var(--fg); }
+
+/* ---------- toolbar ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.tool {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-width: 30px; height: 30px; padding: 0 6px;
+  border: 0; border-radius: 6px; background: transparent;
+  font-size: 0.85em; cursor: pointer; flex-shrink: 0;
+}
+.tool:hover { background: var(--shelf); }
+.tool[aria-pressed="true"] { background: var(--contrast); color: var(--accent); }
+.tool:disabled { opacity: 0.35; cursor: default; background: transparent; }
+.tool.letter { font-size: 0.95em; }
+.tool.block { min-width: 9.2em; justify-content: space-between; padding: 0 8px; }
+.sep { width: 1px; height: 18px; margin: 0 5px; background: var(--line); flex-shrink: 0; }
+.spacer { flex: 1; min-width: 6px; }
+
+/* ---------- editor (mirrors Super's default typography) ---------- */
+.editor-wrap { position: relative; flex: 1; overflow-y: auto; }
+#page {
+  --list-indent: 16px;
+  --checkbox: 18px;
+  min-height: 100%;
+  padding: 1rem;
+  outline: none;
+  font-family: var(--editor-font);
+  font-size: var(--size);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  caret-color: var(--fg);
+}
+@media (max-width: 767px) { #page { --list-indent: 20px; } }
+@media (max-width: 450px) { #page { --checkbox: 26px; } }
+.placeholder {
+  position: absolute; top: 1rem; left: 1rem; right: 1rem;
+  font-family: var(--editor-font); font-size: var(--size); line-height: 1.5;
+  color: var(--passive); pointer-events: none; user-select: none;
+}
+.placeholder kbd { font: inherit; padding: 0.125rem; border-radius: 0.25rem; background: color-mix(in srgb, var(--passive) 18%, transparent); }
+#page .p { margin: 0; position: relative; }
+#page .h1, #page .h2, #page .h3, #page .h4, #page .h5, #page .h6 { margin: 0; font-weight: 700; color: var(--fg); }
+#page .h1 { font-size: 1.625rem; }
+#page .h2 { font-size: 1.375rem; }
+#page .h3 { font-size: 1.1875rem; }
+#page .h4 { font-size: 1em; }
+#page .h5 { font-size: 0.875em; }
+#page .h6 { font-size: 0.85em; }
+#page .quote {
+  margin: 0 0 10px 20px; padding-left: 16px;
+  color: var(--passive); border-left: 4px solid var(--passive);
+}
+#page .ul, #page .ol1, #page .ol2, #page .ol3, #page .ol4, #page .ol5 {
+  padding: 0; margin: 0 0 0 var(--list-indent); list-style-position: outside;
+}
+#page .ol2 { list-style-type: upper-alpha; }
+#page .ol3 { list-style-type: lower-alpha; }
+#page .ol4 { list-style-type: upper-roman; }
+#page .ol5 { list-style-type: lower-roman; }
+#page .li { margin: 0; }
+#page .checklist { margin-left: 0; }
+#page .li-nested .checklist { margin-left: 16px; }
+#page .li-checked, #page .li-unchecked {
+  --lh: calc(var(--checkbox) + 0.375rem);
+  position: relative; list-style: none; outline: none; vertical-align: middle;
+  padding-left: calc(var(--checkbox) + 0.5rem); padding-right: calc(var(--checkbox) + 0.5rem);
+  line-height: var(--lh);
+}
+#page .li-checked::before, #page .li-unchecked::before {
+  content: ""; position: absolute; left: 0; top: calc(var(--lh) / 2); transform: translateY(-50%);
+  width: var(--checkbox); height: var(--checkbox); box-sizing: border-box; cursor: pointer; border-radius: 2px;
+}
+#page .li-unchecked::before { border: 1px solid #999; }
+#page .li-checked::before { border: 1px solid var(--accent); background: var(--accent); }
+#page .li-checked::after {
+  content: ""; position: absolute; left: 0; top: calc(var(--lh) / 2); transform: translateY(-50%);
+  width: var(--checkbox); height: var(--checkbox); cursor: pointer; background-repeat: no-repeat; background-size: cover;
+  background-image: url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M17.5%205.83L7.5%2015.83L2.92%2011.25L4.09%2010.08L7.5%2013.48L16.33%204.66L17.5%205.83Z%22%2F%3E%3C%2Fsvg%3E');
+}
+#page .li-checked { text-decoration: line-through; opacity: 0.4; }
+#page .li-nested { list-style: none; }
+#page .li-nested.li-unchecked, #page .li-nested.li-checked { padding-left: 0; text-decoration: none; opacity: 1; }
+#page .li-nested::before, #page .li-nested::after { display: none; }
+#page .link { color: var(--accent); text-decoration: none; cursor: pointer; }
+#page .link:hover { text-decoration: underline; }
+#page .t-bold { font-weight: bold; }
+#page .t-italic { font-style: italic; }
+#page .t-underline { text-decoration: underline; }
+#page .t-strike { text-decoration: line-through; }
+#page .t-ustrike { text-decoration: underline line-through; }
+#page .t-code {
+  background: var(--shelf); color: var(--accent); padding: 5px; border-radius: 5px;
+  font-family: Menlo, Consolas, Monaco, monospace; font-size: 85%;
+}
+#page .t-mark { background: color-mix(in srgb, #ffd400 30%, transparent); color: inherit; border-radius: 2px; }
+#page .t-sub { font-size: 0.8em; vertical-align: sub; }
+#page .t-sup { font-size: 0.8em; vertical-align: super; }
+#page .code-block {
+  display: block; position: relative; margin: 0.5rem 0; padding: 1.25rem 1.35rem;
+  font-family: var(--mono); background: var(--contrast); border-radius: 0.25rem;
+  white-space: pre; tab-size: 2; overflow-x: auto;
+}
+#page .table {
+  border-collapse: collapse; border-spacing: 0; table-layout: fixed;
+  width: calc(100% - 25px); max-width: 100%; margin: 0.5rem 0;
+}
+#page .td, #page .th {
+  border: 1px solid var(--line); min-width: 75px; padding: 6px 8px;
+  vertical-align: top; text-align: start; position: relative; outline: none;
+}
+#page .th { background: var(--contrast); border-color: var(--contrast-border); }
+#page .table-selection *::selection { background: transparent; }
+#page [data-selected-cell], #page .td.selected, #page .th.selected { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+#page .hr { padding: 2px 0; margin: 1em 0; cursor: default; }
+#page .hr::after { content: ""; display: block; height: 2px; background: var(--shelf); }
+#page .img img { max-width: 100%; height: auto; vertical-align: bottom; }
+
+/* Collapsible sections */
+#page .Collapsible__container {
+  background: var(--contrast); border: 1px solid var(--contrast-border);
+  border-radius: 10px; margin-bottom: 8px;
+}
+#page .Collapsible__container .Collapsible__container { background: rgba(255, 255, 255, 0.05); }
+#page .Collapsible__container .code-block { background: var(--bg); border: 1px solid var(--contrast-border); }
+#page .Collapsible__title {
+  position: relative; padding: 5px 5px 5px 20px; font-weight: bold; outline: none;
+}
+#page .Collapsible__title::before {
+  content: ""; position: absolute; left: 7px; top: 50%; transform: translateY(-50%);
+  border-style: solid; border-color: transparent; border-width: 6px 4px 0 4px;
+  border-top-color: var(--contrast-fg); cursor: pointer;
+}
+#page .Collapsible__collapsed > .Collapsible__title::before {
+  border-width: 4px 6px 4px 6px; border-color: transparent; border-left-color: var(--contrast-fg);
+}
+#page .Collapsible__content { padding: 0 5px 5px 20px; }
+#page .Collapsible__collapsed > .Collapsible__content { display: none; user-select: none; }
+
+/* Drag handle for moving blocks */
+.drag-handle {
+  position: absolute; left: 0; top: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  width: 15px; height: 1.4rem; padding: 0; border: 0; border-radius: 4px;
+  background: transparent; color: var(--fg); cursor: grab;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.drag-handle svg { opacity: 0.25; width: 0.6rem; }
+.drag-handle.visible { opacity: 1; pointer-events: auto; }
+.drag-handle:hover { background: var(--contrast); }
+.drag-handle:active { cursor: grabbing; }
+.drop-line {
+  position: absolute; height: 4px; border-radius: 2px;
+  background: var(--accent); pointer-events: none; z-index: 2;
+}
+@media (hover: none) { .drag-handle { display: none; } }
+
+/* ---------- menus ---------- */
+.menu, .dropdown, .slash, .ask {
+  position: fixed; z-index: 10;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-size: 0.85em;
+}
+.menu, .dropdown, .slash { min-width: 190px; padding: 5px; }
+.slash { max-height: 280px; overflow-y: auto; width: 220px; }
+.menu > button, .dropdown > button, .slash > button {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left; padding: 6px 9px;
+  border: 0; border-radius: 5px; background: transparent; cursor: pointer;
+}
+.dropdown > button svg, .slash > button svg { flex-shrink: 0; color: var(--muted); }
+.menu > button:hover:not(:disabled), .dropdown > button:hover, .slash > button:hover { background: var(--shelf); }
+.slash > button[aria-selected="true"] { background: var(--contrast); }
+.dropdown > button.on { color: var(--accent); }
+.dropdown > button.on svg { color: var(--accent); }
+.menu > button:disabled { opacity: 0.4; cursor: default; }
+.menu .danger { color: var(--sn-stylekit-danger-color, #c62828); }
+.menu hr, .dropdown hr { border: 0; border-top: 1px solid var(--line); margin: 5px 2px; }
+.swatches { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; padding: 6px 8px; }
+.swatch { width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: var(--swatch); cursor: pointer; }
+.swatch[aria-checked="true"] { border-color: var(--fg); }
+.ask { display: flex; align-items: center; gap: 6px; padding: 8px; flex-wrap: wrap; max-width: calc(100vw - 8px); }
+.ask label { color: var(--muted); }
+.ask input {
+  flex: 1; min-width: 200px; padding: 5px 8px; font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 5px;
+}
+.ask button { padding: 5px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--shelf); cursor: pointer; }
+.ask button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.notice { margin: 0; padding: 6px 12px; font-size: 0.8em; background: var(--shelf); color: var(--muted); border-bottom: 1px solid var(--line); }
+
+@media (max-width: 520px) {
+  .tab { padding: 7px 12px 6px; }
+  .tool.block { min-width: 8em; }
+}
+</style>
+</head>
+<body>
+<p class="notice" id="notice" hidden>Preview only. Changes aren't saved until this editor is installed in Standard Notes.</p>
+<div class="shelf">
+  <div id="tabs" role="tablist" aria-label="Tabs in this note"></div>
+  <button class="add" id="add" type="button" title="Add tab" aria-label="Add tab">+</button>
+</div>
+<div class="toolbar" id="toolbar" role="toolbar" aria-label="Formatting">
+  <button class="tool block" type="button" data-cmd="block" aria-haspopup="menu" aria-expanded="false" title="Block type"><span id="block-label">Normal text</span><span data-icon="caret"></span></button>
+  <span class="sep"></span>
+  <button class="tool letter" type="button" data-cmd="bold" aria-label="Bold" title="Bold (Ctrl+B)"><b>B</b></button>
+  <button class="tool letter" type="button" data-cmd="italic" aria-label="Italic" title="Italic (Ctrl+I)"><i style="font-family: Georgia, serif">I</i></button>
+  <button class="tool letter" type="button" data-cmd="underline" aria-label="Underline" title="Underline (Ctrl+U)"><u>U</u></button>
+  <button class="tool letter" type="button" data-cmd="strikethrough" aria-label="Strikethrough" title="Strikethrough"><s>S</s></button>
+  <button class="tool" type="button" data-cmd="code" aria-label="Inline code" title="Inline code" data-icon="code"></button>
+  <button class="tool" type="button" data-cmd="highlight" aria-label="Highlight" title="Highlight" data-icon="highlight"></button>
+  <button class="tool" type="button" data-cmd="link" aria-label="Link" title="Link (select text first)" data-icon="link"></button>
+  <span class="sep"></span>
+  <button class="tool" type="button" data-cmd="bullet" aria-label="Bulleted list" title="Bulleted list" data-icon="bullet"></button>
+  <button class="tool" type="button" data-cmd="number" aria-label="Numbered list" title="Numbered list" data-icon="number"></button>
+  <button class="tool" type="button" data-cmd="check" aria-label="Checklist" title="Checklist" data-icon="check"></button>
+  <span class="sep"></span>
+  <button class="tool" type="button" data-cmd="align" aria-label="Alignment" title="Alignment" aria-haspopup="menu" aria-expanded="false" data-icon="align"></button>
+  <button class="tool" type="button" data-cmd="outdent" aria-label="Decrease indent" title="Decrease indent (Shift+Tab)" data-icon="outdent"></button>
+  <button class="tool" type="button" data-cmd="indent" aria-label="Increase indent" title="Increase indent (Tab)" data-icon="indent"></button>
+  <span class="sep"></span>
+  <button class="tool" type="button" data-cmd="insert" aria-label="Insert" title="Insert table, divider, or image" aria-haspopup="menu" aria-expanded="false" data-icon="plus"></button>
+  <button class="tool" type="button" data-cmd="table" aria-label="Table options" title="Table options" aria-haspopup="menu" aria-expanded="false" data-icon="table" hidden></button>
+  <span class="spacer"></span>
+  <button class="tool" type="button" data-cmd="undo" aria-label="Undo" title="Undo (Ctrl+Z)" data-icon="undo" disabled></button>
+  <button class="tool" type="button" data-cmd="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" data-icon="redo" disabled></button>
+</div>
+<div class="editor-wrap">
+  <div id="page" role="tabpanel" contenteditable="true" spellcheck="true"></div>
+  <div class="placeholder" id="placeholder" hidden>Type <kbd>/</kbd> for commands...</div>
+  <button class="drag-handle" id="drag-handle" type="button" draggable="true" tabindex="-1" aria-hidden="true" title="Drag to move" data-icon="grip"></button>
+  <div class="drop-line" id="drop-line" hidden></div>
+</div>
+<div class="menu" id="menu" role="menu" hidden>
+  <button type="button" role="menuitem" data-act="rename">Rename</button>
+  <div class="swatches" role="group" aria-label="Tab color"></div>
+  <hr>
+  <button type="button" role="menuitem" data-act="left">Move left</button>
+  <button type="button" role="menuitem" data-act="right">Move right</button>
+  <hr>
+  <button type="button" role="menuitem" data-act="delete" class="danger">Delete tab</button>
+</div>
+<div class="dropdown" id="dropdown" role="menu" hidden></div>
+<div class="slash" id="slash" role="listbox" aria-label="Insert block" hidden></div>
+<div class="ask" id="ask" hidden>
+  <label for="ask-input">Link address</label>
+  <input id="ask-input" type="url" placeholder="https://" autocomplete="off">
+  <button type="button" class="primary" data-ask="ok">Add</button>
+  <button type="button" data-ask="cancel">Cancel</button>
+</div>
+<script>/*APP*/</script>
+</body>
+</html>
