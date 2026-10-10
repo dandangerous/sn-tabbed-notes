@@ -25,7 +25,7 @@ import { $setBlocksType } from '@lexical/selection'
 import { mergeRegister, $findMatchingParent, $getNearestNodeOfType, $insertNodeToNearestRoot } from '@lexical/utils'
 import { $generateNodesFromDOM } from '@lexical/html'
 import {
-  ImageNode, $createImageNode, HorizontalRuleNode, $createHorizontalRuleNode, HR_TRANSFORMER,
+  ImageNode, $createImageNode, HorizontalRuleNode, $createHorizontalRuleNode, HR_TRANSFORMER, InlineFileNode, SuperFileNode,
   CollapsibleContainerNode, CollapsibleTitleNode, CollapsibleContentNode,
   $createCollapsibleContainerNode, $createCollapsibleTitleNode, $createCollapsibleContentNode,
   $isCollapsibleContainerNode, $isCollapsibleTitleNode, $isCollapsibleContentNode,
@@ -33,6 +33,7 @@ import {
 import { normalizeState, looksLikeLexical, stateToLines } from './normalize.js'
 import { ICONS } from './icons.js'
 import { createSearch } from './search.js'
+import { createImages } from './images.js'
 
 const FORMAT = 'sn-tabbed-notes'
 const COLORS = [
@@ -71,6 +72,7 @@ const histories = new Map()
 let slash = null
 let dropdownOwner = null
 let search = null
+let images = null
 
 /* ================= editor ================= */
 
@@ -94,7 +96,7 @@ const theme = {
 }
 
 const NODES = [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, AutoLinkNode, CodeNode, CodeHighlightNode,
-  TableNode, TableRowNode, TableCellNode, ImageNode, HorizontalRuleNode,
+  TableNode, TableRowNode, TableCellNode, ImageNode, InlineFileNode, SuperFileNode, HorizontalRuleNode,
   CollapsibleContainerNode, CollapsibleTitleNode, CollapsibleContentNode]
 
 const editor = createEditor({
@@ -348,6 +350,7 @@ function renderTabs() {
 
 function applyLock() {
   editor.setEditable(!locked)
+  document.body.classList.toggle('locked', locked)
   page.contentEditable = String(!locked)
   toolbar.hidden = locked
 }
@@ -833,7 +836,8 @@ const ACTIONS = [
   { id: 'table', label: 'Table', icon: 'table', keys: 'grid rows columns', run: insertTable },
   { id: 'collapsible', label: 'Collapsible section', icon: 'collapsible', keys: 'toggle details fold expand hide', run: insertCollapsible },
   { id: 'divider', label: 'Divider', icon: 'divider', keys: 'line hr rule separator', run: insertDivider },
-  { id: 'image', label: 'Image from URL', icon: 'image', keys: 'picture photo', run: insertImage },
+  { id: 'upload', label: 'Image from device', icon: 'image', keys: 'picture photo screenshot upload file', run: () => images && images.chooseFromDevice() },
+  { id: 'image', label: 'Image from URL', icon: 'link', keys: 'picture photo web address', run: insertImage },
 ]
 
 /* ---------- dropdowns ---------- */
@@ -1198,6 +1202,29 @@ document.addEventListener('keydown', (e) => {
     search.open()
   }
 }, true)
+
+/* ================= images and messages ================= */
+
+let toastTimer = null
+function toast(message, kind = 'info') {
+  const el = $('#toast')
+  el.textContent = message
+  el.className = `toast ${kind}`
+  el.hidden = false
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { el.hidden = true }, kind === 'error' ? 8000 : 6000)
+}
+$('#toast').addEventListener('click', () => { $('#toast').hidden = true })
+
+images = createImages({
+  editor,
+  page,
+  wrap,
+  isLocked: () => locked,
+  toast,
+  noteSize: () => (doc ? serialize().length : 0),
+  topBlockAt,
+})
 
 /* ================= Standard Notes bridge ================= */
 

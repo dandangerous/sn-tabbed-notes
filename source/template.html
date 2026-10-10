@@ -278,6 +278,52 @@ button { font: inherit; color: inherit; }
 ::highlight(tn-search) { background-color: color-mix(in srgb, var(--accent) 22%, transparent); }
 ::highlight(tn-search-active) { background-color: color-mix(in srgb, #ff9632 75%, transparent); color: #111; }
 
+
+/* ---------- images ---------- */
+#page .image-block { margin: 0.25rem 0; line-height: 0; }
+#page .iv { position: relative; display: inline-block; max-width: 100%; vertical-align: bottom; line-height: 0; border-radius: 4px; cursor: default; }
+#page .iv img { display: block; max-width: 100%; height: auto; border-radius: inherit; }
+#page .iv.sized img { width: 100%; }
+#page .iv.selected, #page .snfile-card.selected { outline: 2px solid var(--accent); outline-offset: 2px; }
+#page .iv-resize {
+  position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px; box-sizing: border-box;
+  border: 2px solid var(--bg); border-radius: 4px; background: var(--accent);
+  cursor: nwse-resize; opacity: 0; transition: opacity 0.15s; touch-action: none;
+}
+#page [style*="text-align: right"] .iv-resize { right: auto; left: -6px; cursor: nesw-resize; }
+#page .iv:hover .iv-resize, #page .iv.selected .iv-resize, #page .iv.resizing .iv-resize { opacity: 1; }
+#page .iv-size {
+  position: absolute; top: 6px; right: 6px; padding: 2px 6px; border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 12px; line-height: 1.4; font-family: var(--font);
+}
+@media (pointer: coarse) { #page .iv-resize { width: 22px; height: 22px; right: -9px; bottom: -9px; } }
+body.locked #page .iv-resize { display: none; }
+#page .snfile-card {
+  display: flex; flex-direction: column; gap: 2px; margin: 0.25rem 0; padding: 10px 12px;
+  border: 1px dashed var(--line); border-radius: 8px; background: var(--shelf);
+  font-family: var(--font); font-size: 0.85em; line-height: 1.45; color: var(--muted); user-select: none;
+}
+#page .snfile-card strong { color: var(--fg); }
+.image-tools {
+  position: absolute; z-index: 3; display: flex; align-items: center; gap: 1px; padding: 3px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+.image-tools button {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 6px;
+  border: 0; border-radius: 6px; background: transparent; cursor: pointer;
+}
+.image-tools button:hover { background: var(--shelf); }
+.image-tools button[aria-pressed="true"] { background: var(--contrast); color: var(--accent); }
+.image-tools .sep { height: 16px; margin: 0 3px; }
+.toast {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 20;
+  max-width: min(90vw, 460px); padding: 9px 14px; border-radius: 8px;
+  background: #2b2d31; color: #fff; font-size: 13px; line-height: 1.4; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); cursor: pointer;
+}
+.toast.warn { background: #6b4e00; }
+.toast.error { background: #8a1f1f; }
+
 /* ---------- menus ---------- */
 .menu, .dropdown, .slash, .ask {
   position: fixed; z-index: 10;
@@ -374,6 +420,19 @@ button { font: inherit; color: inherit; }
   <div class="placeholder" id="placeholder" hidden>Type <kbd>/</kbd> for commands...</div>
   <button class="drag-handle" id="drag-handle" type="button" draggable="true" tabindex="-1" aria-hidden="true" title="Drag to move" data-icon="grip"></button>
   <div class="drop-line" id="drop-line" hidden></div>
+  <div class="image-tools" id="image-tools" role="toolbar" aria-label="Image" hidden>
+    <button type="button" data-img-align="left" title="Align left" aria-label="Align left" data-icon="alignLeft"></button>
+    <button type="button" data-img-align="center" title="Center" aria-label="Center" data-icon="alignCenter"></button>
+    <button type="button" data-img-align="right" title="Align right" aria-label="Align right" data-icon="alignRight"></button>
+    <span class="sep" data-img-size-sep></span>
+    <button type="button" class="txt" data-img-size="25" title="Quarter width">25%</button>
+    <button type="button" class="txt" data-img-size="50" title="Half width">50%</button>
+    <button type="button" class="txt" data-img-size="75" title="Three-quarter width">75%</button>
+    <button type="button" class="txt" data-img-size="100" title="Full width">100%</button>
+    <button type="button" class="txt" data-img-size="auto" title="Original size (never wider than the page)">Original</button>
+    <span class="sep"></span>
+    <button type="button" data-img-act="delete" title="Delete" aria-label="Delete" data-icon="trash"></button>
+  </div>
 </div>
 <div class="menu" id="menu" role="menu" hidden>
   <button type="button" role="menuitem" data-act="rename">Rename</button>
@@ -392,6 +451,8 @@ button { font: inherit; color: inherit; }
   <button type="button" class="primary" data-ask="ok">Add</button>
   <button type="button" data-ask="cancel">Cancel</button>
 </div>
+<input type="file" id="image-picker" accept="image/*" multiple hidden>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>/*APP*/</script>
 </body>
 </html>

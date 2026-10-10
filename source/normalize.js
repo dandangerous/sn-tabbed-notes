@@ -6,7 +6,9 @@
  * unwrapped to their text instead of failing.
  */
 
-const BLOCKS = new Set(['paragraph', 'heading', 'quote', 'list', 'code', 'table', 'horizontalrule', 'collapsible-container'])
+const BLOCKS = new Set(['paragraph', 'heading', 'quote', 'list', 'code', 'table', 'horizontalrule', 'collapsible-container', 'inline-file', 'snfile'])
+const BLOCK_LEAVES = new Set(['horizontalrule', 'inline-file', 'snfile'])
+const SAFE_SRC = /^(https?:|data:image\/)/i
 const INLINE_ELEMENTS = new Set(['link', 'autolink'])
 const INLINE_LEAVES = new Set(['text', 'linebreak', 'tab', 'unencrypted-image', 'code-highlight'])
 const HEADING_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
@@ -38,8 +40,11 @@ function leaf(n) {
       return { type: 'linebreak', version: 1 }
     case 'tab':
       return { ...textNode('\t'), type: 'tab', mode: 'normal' }
-    case 'unencrypted-image':
-      return { type: 'unencrypted-image', version: 1, src: String(n.src || ''), alt: String(n.alt || '') }
+    case 'unencrypted-image': {
+      const img = { type: 'unencrypted-image', version: 1, src: String(n.src || ''), alt: String(n.alt || '') }
+      if (Number.isFinite(n.width)) img.width = n.width
+      return img
+    }
     default:
       return null
   }
@@ -52,6 +57,11 @@ function inline(nodes) {
     if (INLINE_LEAVES.has(n.type)) {
       const l = leaf(n)
       if (l) out.push(l)
+    } else if (n.type === 'inline-file') {
+      // An embedded image somewhere only text can go: keep it as an inline image
+      if (SAFE_SRC.test(n.src || '')) out.push({ type: 'unencrypted-image', version: 1, src: String(n.src), alt: String(n.fileName || '') })
+    } else if (n.type === 'snfile') {
+      out.push(textNode('[File stored in Standard Notes Files]'))
     } else if (INLINE_ELEMENTS.has(n.type)) {
       const children = inline(kids(n))
       if (n.url && children.length) {
@@ -113,9 +123,26 @@ function table(n) {
   }]
 }
 
+/* A paragraph holding an image block or file: split it so those sit on their own lines. */
+function splitParagraph(n) {
+  const out = []
+  let pending = []
+  const make = (children) => ({ ...elementBase(n), type: 'paragraph', textFormat: n.textFormat || 0, textStyle: n.textStyle || '', children: inline(children) })
+  for (const c of kids(n)) {
+    if (BLOCK_LEAVES.has(c.type)) {
+      if (pending.length) out.push(make(pending))
+      pending = []
+      out.push(...(block(c) || []))
+    } else pending.push(c)
+  }
+  if (pending.length || !out.length) out.push(make(pending))
+  return out
+}
+
 function block(n) {
   switch (n.type) {
     case 'paragraph':
+      if (kids(n).some((c) => BLOCK_LEAVES.has(c.type))) return splitParagraph(n)
       return [{ ...elementBase(n), type: 'paragraph', textFormat: n.textFormat || 0, textStyle: n.textStyle || '', children: inline(kids(n)) }]
     case 'heading':
       return [{ ...elementBase(n), type: 'heading', tag: HEADING_TAGS.has(n.tag) ? n.tag : 'h2', children: inline(kids(n)) }]
@@ -135,6 +162,20 @@ function block(n) {
       return table(n)
     case 'horizontalrule':
       return [{ type: 'horizontalrule', version: 1 }]
+    case 'inline-file': {
+      if (!SAFE_SRC.test(n.src || '')) return []
+      const img = {
+        type: 'inline-file', version: 1, src: String(n.src), mimeType: String(n.mimeType || 'image/png'),
+        fileName: n.fileName ? String(n.fileName) : undefined, format: typeof n.format === 'string' ? n.format : '',
+      }
+      if (Number.isFinite(n.width)) img.width = n.width
+      return [img]
+    }
+    case 'snfile':
+      return [{
+        type: 'snfile', version: 1, fileUuid: String(n.fileUuid || ''),
+        zoomLevel: Number.isFinite(n.zoomLevel) ? n.zoomLevel : 100, format: typeof n.format === 'string' ? n.format : '',
+      }]
     case 'collapsible-container': {
       const parts = kids(n)
       const title = parts.find((c) => c.type === 'collapsible-title')

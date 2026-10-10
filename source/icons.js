@@ -30,6 +30,7 @@ export const ICONS = {
   up: svg('<path d="M4 10l4-4 4 4"/>'),
   down: svg('<path d="M4 6l4 4 4-4"/>'),
   close: svg('<path d="M4 4l8 8M12 4l-8 8"/>'),
+  trash: svg('<path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/>'),
   plus: svg('<path d="M8 3v10M3 8h10"/>'),
   undo: svg('<path d="M5.5 3.5L2.5 6.5l3 3"/><path d="M2.5 6.5h7a3.5 3.5 0 0 1 0 7H7"/>'),
   redo: svg('<path d="M10.5 3.5l3 3-3 3"/><path d="M13.5 6.5h-7a3.5 3.5 0 0 0 0 7H9"/>'),

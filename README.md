@@ -19,11 +19,13 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 - Collapsible sections
 - Tables with header rows
 - Find and replace
+- Paste screenshots and other images, then resize and align them
 - Super's default font, text size, and line spacing
 - Follows your Standard Notes theme, including dark themes
 
 **Works with your existing notes**
 - Open a Super note in Tabbed Notes and its content goes into the first tab, including checklists, tables, links, and collapsible sections
+- Images Super uploaded to Standard Notes Files are kept linked (shown as placeholders, since plugins can't display them)
 - Malformed Super content (the kind that can make a Super note open blank) is repaired rather than failing
 - Plain text and Markdown notes are converted on the way in
 - Nothing is saved until you make an edit
@@ -92,6 +94,21 @@ To add a collapsible section, type `/collapsible`. Click the arrow next to its t
 
 Click inside a table to show the table button in the toolbar, for adding or deleting rows and columns.
 
+### Images
+
+Add an image by:
+
+- **Pasting** a screenshot or copied image (`Ctrl/Cmd + V`)
+- **Dragging** an image file onto the page
+- Choosing **Image from device** from the **+** menu or the `/` menu (the best option on phones and tablets)
+- Choosing **Image from URL** to show an image from a web address
+
+Click an image to select it. A small toolbar appears for alignment (left, center, right), quick sizes (25%, 50%, 75%, 100%, or original size), and deleting. To resize freely, drag the blue handle at the image's corner. Sizes are a percentage of the page width, so images keep their proportions on every screen. Press `Backspace` or `Delete` to remove a selected image, or `Enter` to start a new line after it.
+
+**How images are stored.** Plugins can't use Standard Notes Files, so pasted and uploaded images are embedded in the note itself, in the same format Super uses for embedded images. They're encrypted, synced, kept in backups, and available offline like the rest of the note. To keep notes manageable, images are automatically shrunk to at most 1600 pixels on their longest side and compressed, so a typical screenshot takes 100–400 KB. You'll see a warning for an unusually large image or when a note grows past about 5 MB, because very large notes save and sync slowly.
+
+**Images uploaded in Super** (stored in Standard Notes Files) appear as a placeholder card. The link to the file is kept, so the image reappears if the note is opened in Super again.
+
 ### Find and replace
 
 Press `Ctrl/Cmd + F` while in the editor, or click the magnifying glass in the toolbar.
@@ -140,7 +157,9 @@ The editor makes no network requests of its own. It only loads images you insert
 
 ## Limitations
 
-- **Images** are added from a web address. Plugins can't upload image files.
+- **Images** are embedded in the note rather than uploaded to Standard Notes Files, which plugins can't access. Many large images make a note slow to save and sync, so it's worth keeping image-heavy pages in separate notes.
+- **Images uploaded in Super** can't be displayed here; they appear as placeholders and are kept linked.
+- **Pasting images on Android** depends on the keyboard. If pasting doesn't work, use **Image from device**.
 - **Code blocks** don't color-highlight by programming language.
 - **Find and replace** matches plain text, not formatting, and doesn't match across line breaks. If a replaced word was partly formatted (for example, half bold), the new text takes the formatting of the match's first letter.
 - **`Ctrl/Cmd + F`** opens this editor's search while your cursor is in the note, instead of any Standard Notes or browser search on that shortcut.
@@ -171,6 +190,7 @@ The editor is built on [Lexical](https://lexical.dev), the same editing engine S
 
 ## Changelog
 
+- **2.4.0** — Paste, drop, or upload images; resize and align them. Super's uploaded images are kept linked instead of being dropped.
 - **2.3.0** — Find and replace: search across all tabs, replace in the current tab.
 - **2.2.0** — Fixes the Android app showing an empty note with no tabs.
 - **2.1.0** — Super's typography, drag handles for moving blocks, and collapsible sections.
