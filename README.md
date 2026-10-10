@@ -32,7 +32,7 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 | --- | --- |
 | Web app (app.standardnotes.com) | ✅ Works once installed |
 | Desktop app (Windows, macOS, Linux) | ✅ Works |
-| Android app | ✅ Works (from plugin version 2.2.0) |
+| Android app | ✅ Works |
 | iOS app | ⚠️ Not yet tested; expected to work the same as Android |
 
 Tested with Standard Notes 3.202.9.
@@ -57,6 +57,13 @@ In the older app, open **Preferences → Plugins**, choose **Install Custom Plug
 ```
 https://dandangerous.github.io/sn-tabbed-notes/ext.json
 ```
+
+If that errors, it may be due to the .io address, instead try:
+
+```
+https://raw.githubusercontent.com/dandangerous/sn-tabbed-notes/main/ext.json
+```
+
 
 ### 4. Update the desktop app
 
