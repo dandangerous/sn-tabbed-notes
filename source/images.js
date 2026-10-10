@@ -1,7 +1,7 @@
 import {
   $getRoot, $getSelection, $setSelection, $isRangeSelection, $isNodeSelection, $createNodeSelection, $getNodeByKey,
   $getNearestNodeFromDOMNode, $createParagraphNode, $isElementNode, $isRootOrShadowRoot,
-  PASTE_COMMAND, DROP_COMMAND, KEY_BACKSPACE_COMMAND, KEY_DELETE_COMMAND, KEY_ENTER_COMMAND,
+  PASTE_COMMAND, DROP_COMMAND, KEY_DOWN_COMMAND, KEY_BACKSPACE_COMMAND, KEY_DELETE_COMMAND, KEY_ENTER_COMMAND,
   SELECTION_CHANGE_COMMAND, COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW,
 } from 'lexical'
 import { mergeRegister, $insertNodeToNearestRoot } from '@lexical/utils'
@@ -276,6 +276,11 @@ export function createImages(ctx) {
   // Click an image to select it (mousedown, so the browser doesn't move the text cursor first)
   page.addEventListener('mousedown', (e) => {
     const view = e.target.closest && (e.target.closest('.iv') || e.target.closest('.snfile-card'))
+    if (!view && selectedKey) {
+      // Leaving an image: drop the image selection so the click places the text cursor normally
+      editor.update(() => $setSelection(null), { discrete: true })
+      return
+    }
     if (!view || e.target.closest('.iv-resize') || e.button !== 0) return
     e.preventDefault()
     e.stopPropagation()
@@ -396,6 +401,35 @@ export function createImages(ctx) {
       })
       return true
     }, COMMAND_PRIORITY_LOW),
+    // Typing or moving the cursor while an image is selected continues before or after it
+    editor.registerCommand(KEY_DOWN_COMMAND, (event) => {
+      const node = $selectedMedia()
+      if (!node) return false
+      const key = event.key
+      if (['Backspace', 'Delete', 'Enter', 'Shift', 'Control', 'Alt', 'Meta', 'Tab'].includes(key)) return false
+      const printable = key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey
+      const navigation = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Escape'].includes(key)
+      if (!printable && !navigation) return false
+      const before = ['ArrowLeft', 'ArrowUp', 'Home', 'PageUp'].includes(key) && !(event.ctrlKey || event.metaKey)
+      if ($isImageNode(node)) {
+        if (before) node.selectPrevious()
+        else node.selectNext()
+      } else {
+        const sibling = before ? node.getPreviousSibling() : node.getNextSibling()
+        if (sibling && $isElementNode(sibling)) {
+          if (before) sibling.selectEnd()
+          else sibling.selectStart()
+        } else {
+          const p = $createParagraphNode()
+          if (before) node.insertBefore(p)
+          else node.insertAfter(p)
+          p.selectStart()
+        }
+      }
+      // Plain arrows and Esc just land next to the image; Ctrl/Cmd+Home/End and typing carry on normally
+      if (navigation && !(event.ctrlKey || event.metaKey)) { event.preventDefault(); return true }
+      return false
+    }, COMMAND_PRIORITY_HIGH),
     editor.registerCommand(SELECTION_CHANGE_COMMAND, () => { refresh(); return false }, COMMAND_PRIORITY_LOW),
     editor.registerUpdateListener(() => refresh()),
   )

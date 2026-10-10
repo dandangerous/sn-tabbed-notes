@@ -2,7 +2,7 @@
 
 OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) note. Each tab is its own rich-text page that looks and works like a Super note, with its own name and color.
 
-![Tabbed Notes editor showing colored tabs, a checklist, a collapsible section, and a table](screenshot.png)
+![A note with three colored tabs showing a heading, checklist, quote, collapsible schedule, embedded map image, and budget table](screenshot.png)
 
 ## Features
 
@@ -29,6 +29,16 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 - Malformed Super content (the kind that can make a Super note open blank) is repaired rather than failing
 - Plain text and Markdown notes are converted on the way in
 - Nothing is saved until you make an edit
+
+## Screenshots
+
+| Type `/` for blocks | Find across all tabs |
+| --- | --- |
+| ![The block menu open, listing text styles, lists, quote, code block, and table](screenshot-blocks.png) | ![The search bar finding "cabin", with match counts on every tab and the current match highlighted](screenshot-search.png) |
+
+| Resize and align images |
+| --- |
+| ![A selected image with the alignment and size toolbar above it and a size label showing while dragging the corner handle](screenshot-images.png) |
 
 ## Compatibility
 
@@ -190,6 +200,7 @@ The editor is built on [Lexical](https://lexical.dev), the same editing engine S
 
 ## Changelog
 
+- **2.4.1** — Fixes typing and clicking right after selecting an image (text could land at the top of the page).
 - **2.4.0** — Paste, drop, or upload images; resize and align them. Super's uploaded images are kept linked instead of being dropped.
 - **2.3.0** — Find and replace: search across all tabs, replace in the current tab.
 - **2.2.0** — Fixes the Android app showing an empty note with no tabs.
