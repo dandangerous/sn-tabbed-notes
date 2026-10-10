@@ -10,6 +10,7 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 - Add as many tabs as you like to a single note
 - Rename tabs, give each one a color, and drag them into any order
 - Each tab keeps its own undo history
+- Find across all tabs at once, with a match count on each tab
 
 **Super-style editing on every tab**
 - Type `/` for a block menu: headings, lists, checklists, quotes, code blocks, tables, collapsible sections, dividers, and images
@@ -17,6 +18,7 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 - Drag handles to move blocks up and down
 - Collapsible sections
 - Tables with header rows
+- Find and replace
 - Super's default font, text size, and line spacing
 - Follows your Standard Notes theme, including dark themes
 
@@ -32,7 +34,7 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 | --- | --- |
 | Web app (app.standardnotes.com) | ✅ Works once installed |
 | Desktop app (Windows, macOS, Linux) | ✅ Works |
-| Android app | ✅ Works |
+| Android app | ✅ Works (from plugin version 2.2.0) |
 | iOS app | ⚠️ Not yet tested; expected to work the same as Android |
 
 Tested with Standard Notes 3.202.9.
@@ -57,13 +59,6 @@ In the older app, open **Preferences → Plugins**, choose **Install Custom Plug
 ```
 https://dandangerous.github.io/sn-tabbed-notes/ext.json
 ```
-
-If that errors, it may be due to the .io address, instead try:
-
-```
-https://raw.githubusercontent.com/dandangerous/sn-tabbed-notes/main/ext.json
-```
-
 
 ### 4. Update the desktop app
 
@@ -97,6 +92,19 @@ To add a collapsible section, type `/collapsible`. Click the arrow next to its t
 
 Click inside a table to show the table button in the toolbar, for adding or deleting rows and columns.
 
+### Find and replace
+
+Press `Ctrl/Cmd + F` while in the editor, or click the magnifying glass in the toolbar.
+
+- Search covers **every tab** in the note. Each tab shows how many matches it has, and stepping through matches with `Enter` and `Shift + Enter` moves between tabs.
+- **Replace** and **Replace all in tab** only change the tab you're viewing, so you can always see what's changing. When the current match is in another tab, the status shows which one and Replace is unavailable until you're on that tab.
+- Use **Aa** to match case and **ab** to match whole words only.
+- A match inside a closed collapsible section opens that section.
+- Replacements are normal edits: undo them with `Ctrl/Cmd + Z`. **Replace all in tab** undoes in a single step.
+- Press `Esc` to close the search bar. The cursor is placed on the current match.
+
+Searching never changes your note. Only replacing does.
+
 ### Markdown shortcuts
 
 | Type | To get |
@@ -114,6 +122,8 @@ Click inside a table to show the table button in the toolbar, for adding or dele
 
 | Keys | Action |
 | --- | --- |
+| `Ctrl/Cmd + F` | Find and replace |
+| `Enter` / `Shift + Enter` (in the search box) | Next / previous match |
 | `Ctrl/Cmd + B`, `I`, `U` | Bold, italic, underline |
 | `Tab` / `Shift + Tab` | Indent / outdent (in tables: next / previous cell) |
 | `Ctrl/Cmd + Z` | Undo |
@@ -132,7 +142,9 @@ The editor makes no network requests of its own. It only loads images you insert
 
 - **Images** are added from a web address. Plugins can't upload image files.
 - **Code blocks** don't color-highlight by programming language.
-- **Find and replace** isn't available inside the editor.
+- **Find and replace** matches plain text, not formatting, and doesn't match across line breaks. If a replaced word was partly formatted (for example, half bold), the new text takes the formatting of the match's first letter.
+- **`Ctrl/Cmd + F`** opens this editor's search while your cursor is in the note, instead of any Standard Notes or browser search on that shortcut.
+- **Match highlighting** needs a recent browser or system WebView. On older ones, search still works, but matches aren't highlighted.
 - **Text size and line spacing** follow Super's defaults. Plugins can't read the font size or line height you've set in Standard Notes preferences.
 
 ## Troubleshooting
@@ -159,6 +171,7 @@ The editor is built on [Lexical](https://lexical.dev), the same editing engine S
 
 ## Changelog
 
+- **2.3.0** — Find and replace: search across all tabs, replace in the current tab.
 - **2.2.0** — Fixes the Android app showing an empty note with no tabs.
 - **2.1.0** — Super's typography, drag handles for moving blocks, and collapsible sections.
 - **2.0.0** — Super-style editing on each tab, built on Lexical. Opens Super notes and repairs malformed ones.

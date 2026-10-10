@@ -64,7 +64,7 @@ button { font: inherit; color: inherit; }
 }
 .tab:hover { background: color-mix(in srgb, var(--tab) 26%, var(--shelf)); }
 .tab[aria-selected="true"] { background: var(--tab); color: #fff; font-weight: 600; padding-bottom: 7px; box-shadow: none; }
-.tab-label { display: block; overflow: hidden; text-overflow: ellipsis; }
+.tab-label { display: block; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .tab.dragging { opacity: 0.45; }
 .tab-rename {
   font: inherit; font-weight: 600; color: var(--fg); background: var(--bg);
@@ -240,6 +240,44 @@ button { font: inherit; color: inherit; }
 }
 @media (hover: none) { .drag-handle { display: none; } }
 
+
+/* ---------- find and replace ---------- */
+.searchbar {
+  display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+  padding: 6px 10px; border-bottom: 1px solid var(--line); background: var(--bg);
+  flex-shrink: 0; font-size: 0.87em;
+}
+.search-row { display: flex; align-items: center; gap: 4px; flex: 1 1 320px; min-width: 0; }
+.searchbar input {
+  flex: 1; min-width: 80px; height: 30px; padding: 0 8px;
+  font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; outline: none;
+}
+.searchbar input:focus { border-color: var(--accent); }
+.searchbar.no-results #find { border-color: var(--sn-stylekit-danger-color, #c62828); }
+.sbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 28px; padding: 0 6px; flex-shrink: 0;
+  border: 0; border-radius: 6px; background: transparent; cursor: pointer; font-size: 0.95em;
+}
+.sbtn:hover:not(:disabled) { background: var(--shelf); }
+.sbtn:disabled { opacity: 0.35; cursor: default; }
+.sbtn.opt { font-weight: 600; color: var(--muted); }
+.sbtn.opt[aria-pressed="true"] { background: var(--contrast); color: var(--accent); }
+.sbtn.text { border: 1px solid var(--line); padding: 0 10px; }
+.word-icon { text-decoration: underline; text-underline-offset: 3px; }
+.search-status { min-width: 5.5em; text-align: center; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.searchbar.locked .replace-row { display: none; }
+.tab-badge {
+  display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 9px;
+  font-size: 0.82em; font-weight: 600; line-height: 1.5; vertical-align: 1px;
+  background: var(--accent); color: #fff;
+}
+.tab[aria-selected="true"] .tab-badge { background: #fff; color: var(--tab); }
+.tab { display: inline-flex; align-items: center; }
+::highlight(tn-search) { background-color: color-mix(in srgb, var(--accent) 22%, transparent); }
+::highlight(tn-search-active) { background-color: color-mix(in srgb, #ff9632 75%, transparent); color: #111; }
+
 /* ---------- menus ---------- */
 .menu, .dropdown, .slash, .ask {
   position: fixed; z-index: 10;
@@ -311,8 +349,25 @@ button { font: inherit; color: inherit; }
   <button class="tool" type="button" data-cmd="insert" aria-label="Insert" title="Insert table, divider, or image" aria-haspopup="menu" aria-expanded="false" data-icon="plus"></button>
   <button class="tool" type="button" data-cmd="table" aria-label="Table options" title="Table options" aria-haspopup="menu" aria-expanded="false" data-icon="table" hidden></button>
   <span class="spacer"></span>
+  <button class="tool" type="button" data-cmd="search" aria-label="Find and replace" title="Find and replace (Ctrl/Cmd+F)" data-icon="search"></button>
   <button class="tool" type="button" data-cmd="undo" aria-label="Undo" title="Undo (Ctrl+Z)" data-icon="undo" disabled></button>
   <button class="tool" type="button" data-cmd="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" data-icon="redo" disabled></button>
+</div>
+<div class="searchbar" id="searchbar" role="search" hidden>
+  <div class="search-row">
+    <input id="find" type="search" placeholder="Find in all tabs" aria-label="Find in all tabs" autocomplete="off" spellcheck="false">
+    <button class="sbtn opt" type="button" data-search="case" aria-pressed="false" title="Match case" aria-label="Match case">Aa</button>
+    <button class="sbtn opt" type="button" data-search="word" aria-pressed="false" title="Whole words only" aria-label="Whole words only"><span class="word-icon">ab</span></button>
+    <span class="search-status" id="search-status" aria-live="polite"></span>
+    <button class="sbtn" type="button" data-search="prev" title="Previous match (Shift+Enter)" aria-label="Previous match" data-icon="up"></button>
+    <button class="sbtn" type="button" data-search="next" title="Next match (Enter)" aria-label="Next match" data-icon="down"></button>
+    <button class="sbtn" type="button" data-search="close" title="Close (Esc)" aria-label="Close search" data-icon="close"></button>
+  </div>
+  <div class="search-row replace-row">
+    <input id="replace" type="text" placeholder="Replace with" aria-label="Replace with" autocomplete="off" spellcheck="false">
+    <button class="sbtn text" type="button" data-search="replace">Replace</button>
+    <button class="sbtn text" type="button" data-search="replace-all">Replace all in tab</button>
+  </div>
 </div>
 <div class="editor-wrap">
   <div id="page" role="tabpanel" contenteditable="true" spellcheck="true"></div>

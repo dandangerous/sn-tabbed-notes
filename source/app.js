@@ -32,6 +32,7 @@ import {
 } from './nodes.js'
 import { normalizeState, looksLikeLexical, stateToLines } from './normalize.js'
 import { ICONS } from './icons.js'
+import { createSearch } from './search.js'
 
 const FORMAT = 'sn-tabbed-notes'
 const COLORS = [
@@ -69,6 +70,7 @@ let unregisterHistory = null
 const histories = new Map()
 let slash = null
 let dropdownOwner = null
+let search = null
 
 /* ================= editor ================= */
 
@@ -91,14 +93,19 @@ const theme = {
   },
 }
 
+const NODES = [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, AutoLinkNode, CodeNode, CodeHighlightNode,
+  TableNode, TableRowNode, TableCellNode, ImageNode, HorizontalRuleNode,
+  CollapsibleContainerNode, CollapsibleTitleNode, CollapsibleContentNode]
+
 const editor = createEditor({
   namespace: 'tabbed-notes',
   theme,
-  nodes: [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, AutoLinkNode, CodeNode, CodeHighlightNode,
-    TableNode, TableRowNode, TableCellNode, ImageNode, HorizontalRuleNode,
-    CollapsibleContainerNode, CollapsibleTitleNode, CollapsibleContentNode],
+  nodes: NODES,
   onError: (error) => console.error('[Tabbed Notes]', error),
 })
+
+// A second, invisible editor used to convert tabs that haven't been opened yet (for search).
+const converter = createEditor({ namespace: 'tabbed-notes-convert', theme, nodes: NODES, onError: () => {} })
 editor.setRootElement(page)
 
 mergeRegister(
@@ -129,6 +136,7 @@ mergeRegister(
     if (loadingTab || tags.has('tab-load')) return
     checkSlash()
     if (dirtyElements.size === 0 && dirtyLeaves.size === 0) return
+    if (search) search.onEditorUpdate()
     if (locked || !doc) return
     const tab = activeTab()
     tab.state = editorState.toJSON()
@@ -228,12 +236,12 @@ function $fillFromLines(lines) {
   }
 }
 
-function $fillFromSource(source) {
+function $fillFromSource(source, target = editor) {
   const root = $getRoot()
   root.clear()
   if (source.kind === 'html') {
     const dom = new DOMParser().parseFromString(source.value || '', 'text/html')
-    const nodes = $generateNodesFromDOM(editor, dom)
+    const nodes = $generateNodesFromDOM(target, dom)
     let para = null
     for (const node of nodes) {
       if (node.isInline && node.isInline()) {
@@ -284,6 +292,21 @@ function loadActiveTab() {
   $('[data-cmd="redo"]').disabled = histories.get(tab.id).redoStack.length === 0
   updatePlaceholder()
   updateToolbar()
+  if (search) search.onTabLoaded()
+}
+
+/* Give every tab a saved editor state, converting old-format tabs without opening them. */
+function ensureStates() {
+  if (!doc) return
+  for (const tab of doc.tabs) {
+    if (tab.state || !tab.source) continue
+    try {
+      converter.update(() => $fillFromSource(tab.source, converter), { discrete: true })
+      tab.state = converter.getEditorState().toJSON()
+    } catch (e) {
+      console.warn('[Tabbed Notes] Could not convert a tab for searching', e)
+    }
+  }
 }
 
 /* ================= tabs UI ================= */
@@ -308,6 +331,14 @@ function renderTabs() {
     label.className = 'tab-label'
     label.textContent = tab.title
     el.append(label)
+    const hits = search ? search.countFor(tab.id) : 0
+    if (hits) {
+      const badge = document.createElement('span')
+      badge.className = 'tab-badge'
+      badge.textContent = hits > 99 ? '99+' : String(hits)
+      badge.setAttribute('aria-label', `${hits} ${hits === 1 ? 'match' : 'matches'}`)
+      el.append(badge)
+    }
     tablist.append(el)
   })
   document.body.style.setProperty('--active', colorHex(activeTab().color))
@@ -877,6 +908,7 @@ function bindToolbar() {
           { label: 'Delete table', run: () => tableAction('deltable') },
         ])
         break
+      case 'search': search.open(); break
       case 'undo': editor.dispatchCommand(UNDO_COMMAND, undefined); break
       case 'redo': editor.dispatchCommand(REDO_COMMAND, undefined); break
     }
@@ -1147,6 +1179,25 @@ function applyTextSize() {
   else if (width < 1024 || mobileApp) size = '1rem'
   document.documentElement.style.setProperty('--size', size)
 }
+
+/* ================= search ================= */
+
+search = createSearch({
+  editor,
+  getDoc: () => doc,
+  selectTab: (id) => selectTab(id),
+  renderTabs: () => { if (doc) renderTabs() },
+  isLocked: () => locked,
+  ensureStates,
+  scrollContainer: wrap,
+})
+
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'f') {
+    e.preventDefault()
+    search.open()
+  }
+}, true)
 
 /* ================= Standard Notes bridge ================= */
 
