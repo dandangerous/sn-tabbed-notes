@@ -29,7 +29,7 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 
 **Works with your existing notes**
 - Open a Super note in Tabbed Notes and its content goes into the first tab, including checklists, tables, links, and collapsible sections
-- Images Super uploaded to Standard Notes Files are kept linked (shown as placeholders, since plugins can't display them)
+- Images and files from Super stay attached to the note but show as text placeholders (see [Converting Super notes](#converting-super-notes))
 - Malformed Super content (the kind that can make a Super note open blank) is repaired rather than failing
 - Plain text and Markdown notes are converted on the way in
 - Nothing is saved until you make an edit
@@ -117,7 +117,7 @@ Add an image by:
 - Choosing **Image from device** from the **+** menu or the `/` menu (the best option on phones and tablets)
 - Choosing **Image from URL** to show an image from a web address
 
-Click an image to select it. A small toolbar appears for alignment (left, center, right), quick sizes (25%, 50%, 75%, 100%, or original size), the space the image takes in the note, **Reduce**, and deleting. To resize freely, drag the blue handle at the image's corner. Sizes are a percentage of the page width, so images keep their proportions on every screen. Press `Backspace` or `Delete` to remove a selected image, or `Enter` to start a new line after it.
+Click an image to select it. A small toolbar appears for alignment (left, center, right), quick sizes (25%, 50%, 75%, 100%, or original size), the space the image takes in the note, **Reduce**, and deleting. To resize freely, drag the blue handle at the image's corner. Sizes are a percentage of a standard page width, so an image looks the same on any computer, and on phones it's shown larger (up to the full screen width) so it stays readable. Press `Backspace` or `Delete` to remove a selected image, or `Enter` to start a new line after it.
 
 **How images are stored.** Plugins can't use Standard Notes Files, so pasted and uploaded images are embedded in the note itself, in the same format Super uses for embedded images. They're encrypted, synced, kept in backups, and available offline like the rest of the note. To keep notes manageable, images are automatically shrunk to at most 1600 pixels on their longest side and compressed, so a typical screenshot takes 100–400 KB. You'll see a warning for an unusually large image or when a note grows past about 5 MB, because very large notes save and sync slowly.
 
@@ -125,7 +125,19 @@ Click an image to select it. A small toolbar appears for alignment (left, center
 
 Resizing an image only changes how big it's displayed; the stored image stays full size, so you can enlarge it again later without losing sharpness. If you don't need that, select the image and choose **Reduce**. This re-saves the image at the size it's currently shown (sharp on high-resolution screens) and tells you how much space it saved. The full-size image is gone after that, but `Ctrl/Cmd + Z` brings it back while the note is open. Reduce is unavailable when an image is already about as small as it appears.
 
-**Images uploaded in Super** (stored in Standard Notes Files) appear as a placeholder card. The link to the file is kept, so the image reappears if the note is opened in Super again.
+**Images uploaded in Super** aren't displayed. See [Converting Super notes](#converting-super-notes).
+
+### Converting Super notes
+
+You can switch an existing Super note to Tabbed Notes, and its content goes into the first tab. Text, headings, lists, checklists, tables, links, and collapsible sections come across.
+
+**Images and files are the exception.** Super stores pasted images and attached files in Standard Notes Files, which plugins can't access. After conversion they appear as text placeholders such as `[File: 067ba8e1-819e-4349-b431-e7d252f34134]`:
+
+- The images and files **are still attached to the note**. They're listed in the note's attachments bar, and you can open them from there.
+- They **don't display** inside the tab.
+- **Converting back to Super doesn't restore them.** The placeholders stay as plain text, and the files remain attached to the note.
+
+If a note relies on images you want to see inline, keep it in Super, or paste the images into the tab again so they're embedded.
 
 ### Find and replace
 
@@ -176,7 +188,7 @@ The editor makes no network requests of its own. It only loads images you insert
 ## Limitations
 
 - **Images** are embedded in the note rather than uploaded to Standard Notes Files, which plugins can't access. Many large images make a note slow to save and sync, so it's worth keeping image-heavy pages in separate notes.
-- **Images uploaded in Super** can't be displayed here; they appear as placeholders and are kept linked.
+- **Images and files from converted Super notes** show as text placeholders. They stay attached to the note but don't display, and converting back to Super doesn't restore them.
 - **Attached files can't be linked from inside the text.** Standard Notes doesn't let plugins see a note's attached files or open them, so you can't place a clickable link to an attachment in a tab. Files you attach still appear in the note's attachments bar and open from there. Typing the name as inline code (`` `file: report.pdf` ``) works as a plain-text reminder.
 - **Pasting images on Android** depends on the keyboard. If pasting doesn't work, use **Image from device**.
 - **Code blocks** don't color-highlight by programming language.
@@ -209,6 +221,7 @@ The editor is built on [Lexical](https://lexical.dev), the same editing engine S
 
 ## Changelog
 
+- **2.5.1** — Images are now readable on phones instead of shrinking with the narrow screen.
 - **2.5.0** — Note size in the toolbar, each image's size in its toolbar, and **Reduce** to shrink an image to its displayed size.
 - **2.4.1** — Fixes typing and clicking right after selecting an image (text could land at the top of the page).
 - **2.4.0** — Paste, drop, or upload images; resize and align them. Super's uploaded images are kept linked instead of being dropped.
