@@ -2,6 +2,9 @@
 
 OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) note. Each tab is its own rich-text page that looks and works like a Super note, with its own name and color.
 
+> [!NOTE]
+> **Built with AI.** All of the code in this project was written by Claude, Anthropic's AI assistant, from my requirements and feedback. I directed the design, tested it in Standard Notes on web, desktop, and Android, and maintain the project. The full source is in the [`source`](source) folder for anyone who wants to review it.
+
 ![A note with three colored tabs showing a heading, checklist, quote, collapsible schedule, embedded map image, and budget table](screenshot.png)
 
 ## Features
@@ -20,6 +23,7 @@ OneNote-style tabs inside a single [Standard Notes](https://standardnotes.com) n
 - Tables with header rows
 - Find and replace
 - Paste screenshots and other images, then resize and align them
+- Note size shown in the toolbar, and each image's size shown when you select it
 - Super's default font, text size, and line spacing
 - Follows your Standard Notes theme, including dark themes
 
@@ -113,9 +117,13 @@ Add an image by:
 - Choosing **Image from device** from the **+** menu or the `/` menu (the best option on phones and tablets)
 - Choosing **Image from URL** to show an image from a web address
 
-Click an image to select it. A small toolbar appears for alignment (left, center, right), quick sizes (25%, 50%, 75%, 100%, or original size), and deleting. To resize freely, drag the blue handle at the image's corner. Sizes are a percentage of the page width, so images keep their proportions on every screen. Press `Backspace` or `Delete` to remove a selected image, or `Enter` to start a new line after it.
+Click an image to select it. A small toolbar appears for alignment (left, center, right), quick sizes (25%, 50%, 75%, 100%, or original size), the space the image takes in the note, **Reduce**, and deleting. To resize freely, drag the blue handle at the image's corner. Sizes are a percentage of the page width, so images keep their proportions on every screen. Press `Backspace` or `Delete` to remove a selected image, or `Enter` to start a new line after it.
 
 **How images are stored.** Plugins can't use Standard Notes Files, so pasted and uploaded images are embedded in the note itself, in the same format Super uses for embedded images. They're encrypted, synced, kept in backups, and available offline like the rest of the note. To keep notes manageable, images are automatically shrunk to at most 1600 pixels on their longest side and compressed, so a typical screenshot takes 100–400 KB. You'll see a warning for an unusually large image or when a note grows past about 5 MB, because very large notes save and sync slowly.
+
+**Keeping notes small.** The note's total size appears to the right of the undo and redo buttons. It turns amber above 5 MB and red above 8 MB.
+
+Resizing an image only changes how big it's displayed; the stored image stays full size, so you can enlarge it again later without losing sharpness. If you don't need that, select the image and choose **Reduce**. This re-saves the image at the size it's currently shown (sharp on high-resolution screens) and tells you how much space it saved. The full-size image is gone after that, but `Ctrl/Cmd + Z` brings it back while the note is open. Reduce is unavailable when an image is already about as small as it appears.
 
 **Images uploaded in Super** (stored in Standard Notes Files) appear as a placeholder card. The link to the file is kept, so the image reappears if the note is opened in Super again.
 
@@ -169,6 +177,7 @@ The editor makes no network requests of its own. It only loads images you insert
 
 - **Images** are embedded in the note rather than uploaded to Standard Notes Files, which plugins can't access. Many large images make a note slow to save and sync, so it's worth keeping image-heavy pages in separate notes.
 - **Images uploaded in Super** can't be displayed here; they appear as placeholders and are kept linked.
+- **Attached files can't be linked from inside the text.** Standard Notes doesn't let plugins see a note's attached files or open them, so you can't place a clickable link to an attachment in a tab. Files you attach still appear in the note's attachments bar and open from there. Typing the name as inline code (`` `file: report.pdf` ``) works as a plain-text reminder.
 - **Pasting images on Android** depends on the keyboard. If pasting doesn't work, use **Image from device**.
 - **Code blocks** don't color-highlight by programming language.
 - **Find and replace** matches plain text, not formatting, and doesn't match across line breaks. If a replaced word was partly formatted (for example, half bold), the new text takes the formatting of the match's first letter.
@@ -200,6 +209,7 @@ The editor is built on [Lexical](https://lexical.dev), the same editing engine S
 
 ## Changelog
 
+- **2.5.0** — Note size in the toolbar, each image's size in its toolbar, and **Reduce** to shrink an image to its displayed size.
 - **2.4.1** — Fixes typing and clicking right after selecting an image (text could land at the top of the page).
 - **2.4.0** — Paste, drop, or upload images; resize and align them. Super's uploaded images are kept linked instead of being dropped.
 - **2.3.0** — Find and replace: search across all tabs, replace in the current tab.

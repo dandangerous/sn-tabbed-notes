@@ -3,7 +3,7 @@
   "name": "Tabbed Notes",
   "content_type": "SN|Component",
   "area": "editor-editor",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "OneNote-style tabs inside a single note. Each tab is a Super-style rich-text page with its own name and color.",
   "url": "https://dandangerous.github.io/sn-tabbed-notes/index.html"
 }
